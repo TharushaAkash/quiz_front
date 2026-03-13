@@ -9,7 +9,7 @@ const Marks = () => {
     const navigate = useNavigate();
 
     const fetchResults = async () => {
-        const res = await axios.get(`${API_URL}/results/user', {
+        const res = await axios.get(`${API_URL}/results/user`, {
             headers: { 'x-auth-token': localStorage.getItem('token') }
         });
         setResults(res.data);
@@ -23,7 +23,7 @@ const Marks = () => {
         e.stopPropagation();
         if (window.confirm('Are you sure you want to delete this result?')) {
             try {
-                await axios.delete(`${ API_URL } / results / ${ id }`, {
+                await axios.delete(`${API_URL}/results/${id}`, {
                     headers: { 'x-auth-token': localStorage.getItem('token') }
                 });
                 fetchResults();
@@ -56,9 +56,9 @@ const Marks = () => {
                                 cursor: 'pointer',
                                 padding: '1.5rem 2rem',
                                 transition: 'all 0.3s ease',
-                                borderLeft: `6px solid ${ isPass? 'var(--success)': 'var(--error)' }`,
+                                borderLeft: `6px solid ${isPass ? 'var(--success)' : 'var(--error)'}`,
                             }}
-                            onClick={() => navigate(`/ review / ${ result._id }`)}
+                            onClick={() => navigate(`/review/${result._id}`)}
                         >
                             <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
                                 <div style={{
