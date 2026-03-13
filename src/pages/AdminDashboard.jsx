@@ -21,20 +21,20 @@ const AdminDashboard = ({ tab }) => {
     }, [tab]);
 
     const fetchUsers = async () => {
-        const res = await axios.get('http://localhost:5000/api/users', {
+        const res = await axios.get(`${API_URL}/users`, {
             headers: { 'x-auth-token': localStorage.getItem('token') }
         });
         setUsers(res.data);
     };
 
     const fetchExams = async () => {
-        const res = await axios.get('http://localhost:5000/api/exams');
+        const res = await axios.get(`${API_URL}/exams`);
         setExams(res.data);
     };
 
     const deleteUser = async (id) => {
         if (window.confirm('Are you sure you want to delete this user?')) {
-            await axios.delete(`http://localhost:5000/api/users/${id}`, {
+            await axios.delete(`${API_URL}/users/${id}`, {
                 headers: { 'x-auth-token': localStorage.getItem('token') }
             });
             fetchUsers();
@@ -43,7 +43,7 @@ const AdminDashboard = ({ tab }) => {
 
     const toggleBlockUser = async (user) => {
         try {
-            await axios.put(`http://localhost:5000/api/users/${user._id}`, { isBlocked: !user.isBlocked }, {
+            await axios.put(`${API_URL}/users/${user._id}`, { isBlocked: !user.isBlocked }, {
                 headers: { 'x-auth-token': localStorage.getItem('token') }
             });
             fetchUsers();
@@ -55,7 +55,7 @@ const AdminDashboard = ({ tab }) => {
     const handleUpdateUser = async (e) => {
         e.preventDefault();
         try {
-            await axios.put(`http://localhost:5000/api/users/${editingUser._id}`, editingUser, {
+            await axios.put(`${API_URL}/users/${editingUser._id}`, editingUser, {
                 headers: { 'x-auth-token': localStorage.getItem('token') }
             });
             setEditingUser(null);
@@ -67,7 +67,7 @@ const AdminDashboard = ({ tab }) => {
 
     const deleteExam = async (id) => {
         if (window.confirm('Delete this exam?')) {
-            await axios.delete(`http://localhost:5000/api/exams/${id}`);
+            await axios.delete(`${API_URL}/exams/${id}`);
             fetchExams();
         }
     };
@@ -79,7 +79,7 @@ const AdminDashboard = ({ tab }) => {
     const handleCreateExam = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:5000/api/exams', newExam);
+            await axios.post(`${API_URL}/exams`, newExam);
             resetForm();
             fetchExams();
         } catch (err) {
@@ -98,7 +98,7 @@ const AdminDashboard = ({ tab }) => {
         formData.append('duration', newExam.duration);
 
         try {
-            await axios.post('http://localhost:5000/api/exams/upload', formData, {
+            await axios.post(`${API_URL}/exams/upload`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             resetForm();
