@@ -2,6 +2,7 @@ import { useContext, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { User, Mail, GraduationCap, Calendar, Edit, Save, X } from 'lucide-react';
 import axios from 'axios';
+import API_URL from '../api';
 
 const Profile = () => {
     const { user, refreshUser } = useContext(AuthContext);
@@ -16,7 +17,7 @@ const Profile = () => {
 
     const handleSave = async () => {
         try {
-            await axios.put('http://localhost:5000/api/users/profile', formData, {
+            await axios.put(`${API_URL}/users/profile`, formData, {
                 headers: { 'x-auth-token': localStorage.getItem('token') }
             });
             await refreshUser();

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import API_URL from '../api';
 import { ChevronLeft, CheckCircle, XCircle, Clock, Award, Calendar } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -14,7 +15,7 @@ const ResultReview = () => {
     useEffect(() => {
         const fetchResult = async () => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/results/${id}`, {
+                const res = await axios.get(`${API_URL}/results/${id}`, {
                     headers: { 'x-auth-token': localStorage.getItem('token') }
                 });
                 setResult(res.data);

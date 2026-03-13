@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_URL from '../api';
 import { useNavigate } from 'react-router-dom';
 import { Play, Clock, BookOpen } from 'lucide-react';
 
@@ -9,7 +10,7 @@ const Exams = () => {
 
     useEffect(() => {
         const fetchExams = async () => {
-            const res = await axios.get('http://localhost:5000/api/exams');
+            const res = await axios.get(`${API_URL}/exams`);
             setExams(res.data);
         };
         fetchExams();

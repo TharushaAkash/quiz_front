@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import API_URL from '../api';
 import { Timer, Send, ChevronRight, ChevronLeft, BookOpen } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -16,7 +17,7 @@ const ExamPortal = () => {
 
     useEffect(() => {
         const fetchExam = async () => {
-            const res = await axios.get(`http://localhost:5000/api/exams/${id}`);
+            const res = await axios.get(`${API_URL}/exams/${id}`);
             setExam(res.data);
             setTimeLeft(res.data.duration * 60);
         };
@@ -30,7 +31,7 @@ const ExamPortal = () => {
                 return ans === undefined ? null : ans;
             });
 
-            await axios.post('http://localhost:5000/api/results', {
+            await axios.post(`${API_URL}/results`, {
                 examId: id,
                 answers: formattedAnswers
             }, {

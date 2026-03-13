@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_URL from '../api';
 import { User, Trash2, Plus, ClipboardList, BookOpen, Clock, Edit, Ban, Check, X } from 'lucide-react';
 
 const AdminDashboard = ({ tab }) => {
