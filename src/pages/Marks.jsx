@@ -42,7 +42,8 @@ const Marks = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                 {results.map(result => {
-                    const percentage = Math.round((result.score / result.totalQuestions) * 100);
+                    const isCodeExam = result.totalMarksAvailable > 0;
+                    const percentage = isCodeExam ? Math.round((result.totalMarksAwarded / result.totalMarksAvailable) * 100) : Math.round((result.score / result.totalQuestions) * 100);
                     const isPass = percentage >= 50;
 
                     return (
@@ -77,7 +78,7 @@ const Marks = () => {
                                     <h3 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '0.4rem', color: 'white' }}>{result.exam?.title || 'Exam Deleted'}</h3>
                                     <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Calendar size={14} color="var(--primary)" /> {new Date(result.completedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><CheckCircle size={14} color="var(--primary)" /> {result.score} / {result.totalQuestions} Correct</span>
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><CheckCircle size={14} color="var(--primary)" /> {isCodeExam ? `${result.totalMarksAwarded} / ${result.totalMarksAvailable} Marks` : `${result.score} / ${result.totalQuestions} Correct`}</span>
                                     </div>
                                 </div>
                             </div>

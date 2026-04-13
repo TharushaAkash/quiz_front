@@ -12,7 +12,7 @@ const AdminDashboard = ({ tab }) => {
     const [editingUser, setEditingUser] = useState(null);
     const [newExam, setNewExam] = useState({
         title: '', description: '', duration: 30,
-        questions: [{ questionText: '', options: ['', '', '', ''], correctOptions: [0] }]
+        questions: [{ questionText: '', type: 'MCQ-Multiple', marks: 10, options: ['', '', '', ''], correctOptions: [0] }]
     });
 
     useEffect(() => {
@@ -73,7 +73,7 @@ const AdminDashboard = ({ tab }) => {
     };
 
     const addQuestion = () => {
-        setNewExam({ ...newExam, questions: [...newExam.questions, { questionText: '', options: ['', '', '', ''], correctOption: 0 }] });
+        setNewExam({ ...newExam, questions: [...newExam.questions, { questionText: '', type: 'MCQ-Multiple', marks: 10, options: ['', '', '', ''], correctOptions: [0] }] });
     };
 
     const handleCreateExam = async (e) => {
@@ -114,7 +114,7 @@ const AdminDashboard = ({ tab }) => {
         setFile(null);
         setNewExam({
             title: '', description: '', duration: 30,
-            questions: [{ questionText: '', options: ['', '', '', ''], correctOptions: [0] }]
+            questions: [{ questionText: '', type: 'MCQ-Multiple', marks: 10, options: ['', '', '', ''], correctOptions: [0] }]
         });
     };
 
@@ -202,38 +202,59 @@ const AdminDashboard = ({ tab }) => {
                                         <div key={qIndex} className="glass-card" style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)' }}>
                                             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.2rem' }}>
                                                 <div style={{ background: 'var(--primary)', color: 'white', weight: '30px', height: '30px', minWidth: '30px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '0.8rem' }}>{qIndex + 1}</div>
+                                                <select
+                                                    style={{ padding: '0.6rem', borderRadius: '0.5rem', border: '1px solid var(--glass-border)', background: 'rgba(15, 23, 42, 0.4)', color: 'white' }}
+                                                    value={q.type || 'MCQ-Multiple'}
+                                                    onChange={e => {
+                                                        const qs = [...newExam.questions];
+                                                        qs[qIndex].type = e.target.value;
+                                                        setNewExam({ ...newExam, questions: qs });
+                                                    }}
+                                                >
+                                                    <option value="MCQ-Multiple">Multiple Choice</option>
+                                                    <option value="Code-Evaluation">Code Challenge</option>
+                                                </select>
+                                                {(q.type === 'Code-Evaluation') && (
+                                                    <input type="number" placeholder="Marks" value={q.marks || 0} onChange={e => {
+                                                        const qs = [...newExam.questions];
+                                                        qs[qIndex].marks = parseInt(e.target.value) || 0;
+                                                        setNewExam({ ...newExam, questions: qs });
+                                                    }} style={{ width: '100px', padding: '0.6rem' }} />
+                                                )}
                                                 <input placeholder="Enter the question text..." value={q.questionText} onChange={e => {
                                                     const qs = [...newExam.questions];
                                                     qs[qIndex].questionText = e.target.value;
                                                     setNewExam({ ...newExam, questions: qs });
                                                 }} required style={{ width: '100%', padding: '0.6rem' }} />
                                             </div>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginLeft: '2.5rem' }}>
-                                                {q.options.map((opt, oIndex) => (
-                                                    <div key={oIndex} style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={q.correctOptions.includes(oIndex)}
-                                                            onChange={() => {
+                                            {(q.type !== 'Code-Evaluation') && (
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginLeft: '2.5rem' }}>
+                                                    {q.options.map((opt, oIndex) => (
+                                                        <div key={oIndex} style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={q.correctOptions.includes(oIndex)}
+                                                                onChange={() => {
+                                                                    const qs = [...newExam.questions];
+                                                                    const currentOptions = qs[qIndex].correctOptions;
+                                                                    if (currentOptions.includes(oIndex)) {
+                                                                        qs[qIndex].correctOptions = currentOptions.filter(o => o !== oIndex);
+                                                                    } else {
+                                                                        qs[qIndex].correctOptions = [...currentOptions, oIndex];
+                                                                    }
+                                                                    setNewExam({ ...newExam, questions: qs });
+                                                                }}
+                                                                style={{ width: '18px', height: '18px' }}
+                                                            />
+                                                            <input placeholder={`Option ${oIndex + 1}`} value={opt} onChange={e => {
                                                                 const qs = [...newExam.questions];
-                                                                const currentOptions = qs[qIndex].correctOptions;
-                                                                if (currentOptions.includes(oIndex)) {
-                                                                    qs[qIndex].correctOptions = currentOptions.filter(o => o !== oIndex);
-                                                                } else {
-                                                                    qs[qIndex].correctOptions = [...currentOptions, oIndex];
-                                                                }
+                                                                qs[qIndex].options[oIndex] = e.target.value;
                                                                 setNewExam({ ...newExam, questions: qs });
-                                                            }}
-                                                            style={{ width: '18px', height: '18px' }}
-                                                        />
-                                                        <input placeholder={`Option ${oIndex + 1}`} value={opt} onChange={e => {
-                                                            const qs = [...newExam.questions];
-                                                            qs[qIndex].options[oIndex] = e.target.value;
-                                                            setNewExam({ ...newExam, questions: qs });
-                                                        }} required style={{ padding: '0.5rem' }} />
-                                                    </div>
-                                                ))}
-                                            </div>
+                                                            }} required={q.type !== 'Code-Evaluation'} style={{ padding: '0.5rem' }} />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>

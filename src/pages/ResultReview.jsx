@@ -71,7 +71,7 @@ const ResultReview = () => {
                                 <Clock size={16} /> <span>Review Session</span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
-                                <Award size={16} color="var(--primary)" /> <span>{score} / {totalQuestions} Correct</span>
+                                <Award size={16} color="var(--primary)" /> <span>{result.totalMarksAvailable > 0 ? `${result.totalMarksAwarded} / ${result.totalMarksAvailable} Marks` : `${score} / ${totalQuestions} Correct`}</span>
                             </div>
                         </div>
                     </div>
@@ -81,16 +81,16 @@ const ResultReview = () => {
                             width: '120px',
                             height: '120px',
                             borderRadius: '50%',
-                            border: `8px solid ${score / totalQuestions >= 0.5 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 63, 94, 0.1)'}`,
-                            borderTopColor: score / totalQuestions >= 0.5 ? 'var(--success)' : 'var(--error)',
+                            border: `8px solid ${(result.totalMarksAvailable > 0 ? (result.totalMarksAwarded / result.totalMarksAvailable) : (score / totalQuestions)) >= 0.5 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 63, 94, 0.1)'}`,
+                            borderTopColor: (result.totalMarksAvailable > 0 ? (result.totalMarksAwarded / result.totalMarksAvailable) : (score / totalQuestions)) >= 0.5 ? 'var(--success)' : 'var(--error)',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
                             position: 'relative'
                         }}>
-                            <div style={{ fontSize: '1.8rem', fontWeight: '800', color: score / totalQuestions >= 0.5 ? 'var(--success)' : 'var(--error)' }}>
-                                {Math.round((score / totalQuestions) * 100)}%
+                            <div style={{ fontSize: '1.8rem', fontWeight: '800', color: (result.totalMarksAvailable > 0 ? (result.totalMarksAwarded / result.totalMarksAvailable) : (score / totalQuestions)) >= 0.5 ? 'var(--success)' : 'var(--error)' }}>
+                                {Math.round((result.totalMarksAvailable > 0 ? (result.totalMarksAwarded / result.totalMarksAvailable) : (score / totalQuestions)) * 100)}%
                             </div>
                             <div style={{ fontSize: '0.65rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Final Score</div>
                         </div>
@@ -128,12 +128,16 @@ const ResultReview = () => {
                                         fontWeight: '800',
                                         textTransform: 'uppercase',
                                         letterSpacing: '0.05em',
-                                        color: isCorrect ? 'var(--success)' : 'var(--error)'
+                                        color: q.type === 'Code-Evaluation' ? 'var(--primary)' : isCorrect ? 'var(--success)' : 'var(--error)'
                                     }}>
-                                        {isCorrect ? 'POINTS AWARDED' : 'NO POINTS'}
+                                        {q.type === 'Code-Evaluation' ? 'AI GRADED' : isCorrect ? 'POINTS AWARDED' : 'NO POINTS'}
                                     </span>
                                 </div>
-                                {isCorrect ? (
+                                {q.type === 'Code-Evaluation' ? (
+                                    <div style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '700' }}>
+                                        <Award size={20} /> {answers[idx]?.marksAwarded} / {q.marks} Marks
+                                    </div>
+                                ) : isCorrect ? (
                                     <div style={{ color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: '700' }}>
                                         <CheckCircle size={20} /> Correct
                                     </div>
@@ -158,7 +162,7 @@ const ResultReview = () => {
                                 </div>
                             )}
 
-                            {!isShort ? (
+                            {!isShort && q.type !== 'Code-Evaluation' ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                     {q.options.map((opt, oIdx) => {
                                         const isSelected = studentAns.includes(oIdx);
@@ -207,6 +211,37 @@ const ResultReview = () => {
                                         );
                                     })}
                                 </div>
+                            ) : q.type === 'Code-Evaluation' ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    <div style={{ fontSize: '0.7rem', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Your Submitted Code</div>
+                                    <div style={{ borderRadius: '1rem', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
+                                        <SyntaxHighlighter
+                                            language="javascript"
+                                            style={oneDark}
+                                            customStyle={{ margin: 0, padding: '1.5rem', fontSize: '0.95rem', background: '#010409' }}
+                                        >
+                                            {answers[idx]?.studentCodeText || '(No entry found)'}
+                                        </SyntaxHighlighter>
+                                    </div>
+                                    <div style={{
+                                        marginTop: '0.5rem',
+                                        padding: '1.8rem',
+                                        borderRadius: '1rem',
+                                        border: '1px solid rgba(139, 92, 246, 0.3)',
+                                        background: 'rgba(139, 92, 246, 0.05)',
+                                        color: 'white'
+                                    }}>
+                                        <h4 style={{ color: 'var(--primary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <CheckCircle size={18} /> AI Feedback
+                                        </h4>
+                                        <p style={{ lineHeight: '1.6', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>{answers[idx]?.aiFeedback}</p>
+
+                                        <h4 style={{ color: 'var(--error)', marginTop: '1.5rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <XCircle size={18} /> Syntax Errors & Warnings
+                                        </h4>
+                                        <p style={{ lineHeight: '1.6', fontSize: '0.95rem', color: 'var(--text-muted)', whiteSpace: 'pre-wrap' }}>{answers[idx]?.syntaxErrors}</p>
+                                    </div>
+                                </div>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -233,7 +268,7 @@ const ResultReview = () => {
                                 </div>
                             )}
 
-                            {!isCorrect && !isShort && (
+                            {!isCorrect && !isShort && q.type !== 'Code-Evaluation' && (
                                 <div style={{
                                     marginTop: '2rem',
                                     padding: '1.2rem',

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import API_URL from '../api';
-import { Timer, Send, ChevronRight, ChevronLeft, BookOpen } from 'lucide-react';
+import { Timer, Send, ChevronRight, ChevronLeft, BookOpen, ArrowRight, ChevronDown, Check, Globe } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
@@ -14,6 +14,29 @@ const ExamPortal = () => {
     const [answers, setAnswers] = useState({});
     const [timeLeft, setTimeLeft] = useState(0);
     const [isStarted, setIsStarted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Dynamic Model States
+    const [fetchedModels, setFetchedModels] = useState([]);
+    const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+    const [selectedModel, setSelectedModel] = useState('');
+
+    useEffect(() => {
+        axios.get('https://openrouter.ai/api/v1/models')
+            .then(res => {
+                if (res.data?.data) {
+                    // Extract name and IDs of all free models dynamically
+                    const freeModels = res.data.data
+                        .filter(m => m.id.endsWith(':free'))
+                        .map(m => ({ id: m.id, name: m.name }));
+                    setFetchedModels(freeModels);
+                    if (freeModels.length > 0) {
+                        setSelectedModel(freeModels[0].id);
+                    }
+                }
+            })
+            .catch(err => console.error('Failed to load free models dynamically', err));
+    }, []);
 
     useEffect(() => {
         const fetchExam = async () => {
@@ -25,25 +48,29 @@ const ExamPortal = () => {
     }, [id]);
 
     const submitExam = useCallback(async () => {
+        setIsSubmitting(true);
         try {
             const formattedAnswers = exam.questions.map((_, index) => {
                 const ans = answers[index];
                 return ans === undefined ? null : ans;
             });
 
-            await axios.post(`${API_URL}/results`, {
+            const res = await axios.post(`${API_URL}/results`, {
                 examId: id,
-                answers: formattedAnswers
+                answers: formattedAnswers,
+                aiModel: selectedModel
             }, {
                 headers: { 'x-auth-token': localStorage.getItem('token') }
             });
             alert('Exam submitted successfully!');
-            navigate('/dashboard');
+            navigate(`/review/${res.data._id}`);
         } catch (err) {
             console.error('Submission failed', err);
-            alert('Failed to submit exam. Please try again.');
+            alert(err.response?.data?.message || 'Failed to submit exam. Please try again.');
+        } finally {
+            setIsSubmitting(false);
         }
-    }, [answers, exam, id, navigate]);
+    }, [answers, exam, id, navigate, selectedModel]);
 
     useEffect(() => {
         if (isStarted && timeLeft > 0) {
@@ -150,7 +177,27 @@ const ExamPortal = () => {
                     )}
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {exam.questions[currentQuestion].type && exam.questions[currentQuestion].type.includes('Short') ? (
+                        {exam.questions[currentQuestion].type === 'Code-Evaluation' ? (
+                            <textarea
+                                placeholder="Write or paste your code here..."
+                                style={{
+                                    padding: '1.5rem',
+                                    width: '100%',
+                                    fontSize: '1rem',
+                                    fontFamily: 'SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace',
+                                    minHeight: '300px',
+                                    resize: 'vertical',
+                                    background: '#010409',
+                                    color: '#e6edf3',
+                                    border: '1px solid var(--glass-border)',
+                                    borderRadius: '1rem',
+                                    outline: 'none'
+                                }}
+                                value={answers[currentQuestion] || ''}
+                                onChange={(e) => setAnswers({ ...answers, [currentQuestion]: e.target.value })}
+                                spellCheck="false"
+                            />
+                        ) : exam.questions[currentQuestion].type && exam.questions[currentQuestion].type.includes('Short') ? (
                             <textarea
                                 placeholder="Type your answer here..."
                                 style={{
@@ -231,15 +278,96 @@ const ExamPortal = () => {
                     >
                         <ChevronLeft size={20} /> Previous
                     </button>
-                    {currentQuestion === exam.questions.length - 1 ? (
-                        <button className="btn-primary" style={{ padding: '0.8rem 2.5rem', borderRadius: '0.75rem' }} onClick={submitExam}>
-                            Finish & Submit <Send size={18} />
-                        </button>
-                    ) : (
-                        <button className="btn-primary" style={{ padding: '0.8rem 2rem', borderRadius: '0.75rem' }} onClick={() => setCurrentQuestion(prev => prev + 1)}>
-                            Next Question <ChevronRight size={20} />
-                        </button>
-                    )}
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                        {exam.questions.some(q => q.type === 'Code-Evaluation') && (
+                            <div style={{ position: 'relative' }}>
+                                <div
+                                    onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+                                    style={{
+                                        width: '350px',
+                                        padding: '0.8rem 1rem',
+                                        borderRadius: '0.6rem',
+                                        background: 'white',
+                                        border: '1px solid #4f46e5',
+                                        color: '#333',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                        <Globe size={18} color="#4f46e5" />
+                                        <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>
+                                            {fetchedModels.find(m => m.id === selectedModel)?.name || 'Loading free models...'}
+                                        </span>
+                                    </div>
+                                    <ChevronDown size={18} color="#666" style={{ transform: isModelDropdownOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} />
+                                </div>
+
+                                {isModelDropdownOpen && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        bottom: 'calc(100% + 8px)',
+                                        left: 0,
+                                        width: '100%',
+                                        background: 'white',
+                                        border: '1px solid #e5e7eb',
+                                        borderRadius: '0.6rem',
+                                        maxHeight: '350px',
+                                        overflowY: 'auto',
+                                        zIndex: 50,
+                                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
+                                    }}>
+                                        {fetchedModels.map(m => (
+                                            <div
+                                                key={m.id}
+                                                onClick={() => { setSelectedModel(m.id); setIsModelDropdownOpen(false); }}
+                                                style={{
+                                                    padding: '0.8rem 1rem',
+                                                    borderBottom: '1px solid #f3f4f6',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    background: selectedModel === m.id ? '#f5f3ff' : 'white',
+                                                    transition: 'background 0.2s'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    if (selectedModel !== m.id) e.currentTarget.style.background = '#f9fafb';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    if (selectedModel !== m.id) e.currentTarget.style.background = 'white';
+                                                }}
+                                            >
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                                                    <span style={{
+                                                        color: selectedModel === m.id ? '#4f46e5' : '#1f2937',
+                                                        fontWeight: 600,
+                                                        fontSize: '0.95rem'
+                                                    }}>{m.name}</span>
+                                                    <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>{m.id}</span>
+                                                </div>
+                                                {selectedModel === m.id && <Check size={18} color="#4f46e5" />}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {currentQuestion === exam.questions.length - 1 ? (
+                            <button className="btn-primary" style={{ padding: '0.8rem 2.5rem', borderRadius: '0.75rem', opacity: isSubmitting ? 0.7 : 1 }} onClick={submitExam} disabled={isSubmitting}>
+                                {isSubmitting ? 'Evaluating...' : <>Finish & Submit <Send size={18} /></>}
+                            </button>
+                        ) : (
+                            <button className="btn-primary" style={{ padding: '0.8rem 2rem', borderRadius: '0.75rem' }} onClick={() => setCurrentQuestion(prev => prev + 1)}>
+                                Next Question <ChevronRight size={20} />
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
