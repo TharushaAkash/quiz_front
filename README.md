@@ -1,16 +1,57 @@
-# React + Vite
+# Project Documentation
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Project Overview
+This project is a quiz application designed to provide users with a platform to take quizzes on various topics, track their progress, and view their scores.
 
-Currently, two official plugins are available:
+## Features
+- User authentication for secure access
+- Various quiz categories
+- Timer for each quiz
+- Score tracking and user progress
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Tech Stack
+- **Frontend:** React, Bootstrap
+- **Backend:** Node.js, Express
+- **Database:** MongoDB
 
-## React Compiler
+## Project Structure
+```
+├── client         # Frontend code
+├── server         # Backend code
+├── README.md      # Documentation
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Getting Started Instructions
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/TharushaAkash/quiz_front.git
+   ```
+2. Navigate to the `client` directory and install dependencies:
+   ```bash
+   cd client
+   npm install
+   ```
+3. Navigate to the `server` directory and install dependencies:
+   ```bash
+   cd server
+   npm install
+   ```
+4. Start the development servers.
 
-## Expanding the ESLint configuration
+## Available Scripts
+- **For the client:**
+  - `npm start` - Starts the frontend application.
+- **For the server:**
+  - `npm run dev` - Runs the backend in development mode.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Authentication Details
+Use the following credentials to log in:
+- Username: testuser
+- Password: Password123
+
+## Routes
+- `/api/quizzes` - Get all quizzes
+- `/api/users` - User authentication
+
+## Live Site
+Check out the live site at [quizem.netlify.app](https://quizem.netlify.app/)
